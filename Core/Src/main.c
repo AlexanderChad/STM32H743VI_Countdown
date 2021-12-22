@@ -37,19 +37,58 @@
 struct tm EventDate;
 struct tm NowTime;
 int utc_timezone = 7;
-const unsigned char font_f_for16x16[44] = { 0b00011110, 0b00100001, 0b00100001,
-		0b00011110, // Символ 48  <0>
-		0b00000000, 0b00100010, 0b00111111, 0b00100000, // Символ 49  <1>
-		0b00110010, 0b00101001, 0b00100101, 0b00100010, // Символ 50  <2>
-		0b00010010, 0b00100001, 0b00100101, 0b00011010, // Символ 51  <3>
-		0b00000011, 0b00000100, 0b00000100, 0b00111111, // Символ 52  <4>
-		0b00010110, 0b00100101, 0b00100101, 0b00011001, // Символ 53  <5>
-		0b00011110, 0b00101001, 0b00101001, 0b00010010, // Символ 54  <6>
-		0b00000001, 0b00111001, 0b00000101, 0b00000011, // Символ 55  <7>
-		0b00011010, 0b00100101, 0b00100101, 0b00011010, // Символ 56  <8>
-		0b00000010, 0b00100101, 0b00100101, 0b00011110, // Символ 57  <9>
-		0b00000000, 0b00110011, 0b00110011, 0b00000000  // Символ 58  <:>
+
+#define FONT_LENGTH          11
+#define FONT_START_CHAR      48
+#define FONT_CHAR_WIDTH      8
+#define FONT_CHAR_HEIGHT     13
+#define FONT_ARRAY_LENGTH    (FONT_LENGTH * FONT_CHAR_WIDTH)
+
+const unsigned short font_f_for16x16[FONT_ARRAY_LENGTH] = { 0b0000111111111110,
+		0b0001100000000011, 0b0001000000000001, 0b0001000000000001,
+		0b0001000000000001, 0b0001100000000011, 0b0000111111111110,
+		0b0000000000000000, // Символ 48  <0>
+		0b0000000000000000, 0b0000000000001000, 0b0000000000001100,
+		0b0000000000000110, 0b0001111111111111, 0b0000000000000000,
+		0b0000000000000000,
+		0b0000000000000000, // Символ 49  <1>
+		0b0001000000000010, 0b0001110000000011, 0b0001011000000001,
+		0b0001001110000001, 0b0001000011000001, 0b0001000001110010,
+		0b0001000000011100,
+		0b0000000000000000, // Символ 50  <2>
+		0b0001000000000001, 0b0001000000100001, 0b0001000000100001,
+		0b0001000000100001, 0b0001000000100001, 0b0000100001110011,
+		0b0000011110001110,
+		0b0000000000000000, // Символ 51  <3>
+		0b0000010000000000, 0b0000011111000000, 0b0000010001111100,
+		0b0000010000000111, 0b0000010000000000, 0b0001111110000000,
+		0b0000010000000000,
+		0b0000010000000000, // Символ 52  <4>
+		0b0001000000111111, 0b0001000000100001, 0b0001000000100001,
+		0b0001000000100001, 0b0001000000100001, 0b0000100001000001,
+		0b0000011110000001,
+		0b0000000000000000, // Символ 53  <5>
+		0b0000111111110000, 0b0001000000111100, 0b0001000000100110,
+		0b0001000000100011, 0b0001000000100001, 0b0001000000100000,
+		0b0000111111000000,
+		0b0000000000000000, // Символ 54  <6>
+		0b0000000000000111, 0b0000000000000001, 0b0001100000000001,
+		0b0001111100000001, 0b0000000111110001, 0b0000000000011111,
+		0b0000000000000011,
+		0b0000000000000000, // Символ 55  <7>
+		0b0000011110000000, 0b0000100001011110, 0b0001000000110011,
+		0b0001000000100001, 0b0001000000100001, 0b0001000000110011,
+		0b0000100001011110,
+		0b0000011110000000, // Символ 56  <8>
+		0b0000000001111110, 0b0001000010000001, 0b0001100010000001,
+		0b0000100010000001, 0b0000111010000001, 0b0000011110000001,
+		0b0000000111111110,
+		0b0000000000000000, // Символ 57  <9>
+		0b0000000000000000, 0b0000000000000000, 0b0000000000000000,
+		0b0000001100011000, 0b0000001100011000, 0b0000000000000000,
+		0b0000000000000000, 0b0000000000000000  // Символ 58  <:>
 		};
+#define SETTINGS_ADDRESS 0x81E0020
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -63,7 +102,6 @@ TIM_HandleTypeDef htim1;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
-DMA_HandleTypeDef hdma_usart1_rx;
 
 /* USER CODE BEGIN PV */
 
@@ -74,7 +112,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART3_UART_Init(void);
-static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -83,15 +120,62 @@ static void MX_USART1_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-uint16_t TOnLP = 1;
-//uint8_t RAW_DISPLAY[32] = {128,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,128 };
-//uint8_t RAW_DISPLAY[32] = {0,18,0,72,238,114,119,71,72,0,130,0,78,0,98,0,123,70,220,75,74,74,82,74,90,210,18,123,98,0,28,0};
-#define N_panels 2
-uint8_t RAW_DISPLAY[N_panels][32] = { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 210, 0,
-		39, 96, 74, 145, 36, 81, 70, 74, 36, 74, 0, 42, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0 } };
+uint16_t TOnLP = 50;
+
+uint8_t RAW_DISPLAY[10][32];/* = { 1, 32, 224, 8, 3, 48, 32, 24, 6, 16, 48, 16, 4,
+ 16, 16, 16, 8, 128, 8, 7, 8, 0, 8, 0, 12, 0, 16, 0, 7, 0, 48, 0, 0, 128,
+ 0, 1, 0, 192, 0, 1, 0, 248, 96, 1, 0, 128, 192, 0, 1, 128, 0, 0, 1, 192,
+ 0, 0, 1, 64, 0, 0, 1, 0, 0, 0, 0, 16, 0, 16, 0, 0, 0, 24, 7, 0, 224, 8,
+ 12, 0, 56, 12, 0, 48, 96, 0, 0, 252, 192, 31, 3, 0, 0, 0, 6, 0, 0, 0, 0,
+ 0, 0, 2, 0, 0, 0, 2, 3, 128, 192, 3, 6, 192, 64, 3, 0, 192, 96, 0, 0, 0,
+ 96, 0, 8, 0, 64, 0, 13, 0, 192, 0, 0, 48, 0, 2, 0, 16, 0, 2, 4, 16, 0,
+ 2, 4, 16, 0, 2, 8, 0, 192, 1, 15, 0, 192, 1, 0, 0, 128, 0, 0, 0, 128, 0,
+ 0, 32, 0, 0, 0, 32, 0, 0, 0, 32, 0, 0, 7, 224, 224, 3, 0, 16, 96, 3, 0,
+ 240, 32, 1, 0, 0, 32, 0, 0, 0, 96, 0, 0, 224, 0, 3, 0, 16, 0, 0, 0, 8,
+ 0, 0, 0, 12, 0, 0, 32, 56, 0, 16, 39, 240, 248, 8, 36, 128, 8, 7, 52, 0,
+ 8, 0, 0, 48, 0, 4, 0, 0, 0, 4, 3, 0, 144, 2, 6, 0, 240, 3, 1, 0, 240, 1,
+ 0, 0, 128, 0, 0, 0, 128, 0, 0, 0, 128, 0, 0, 64, 0, 8, 0, 64, 0, 12, 0,
+ 192, 0, 7, 3, 240, 240, 1, 24, 24, 192, 2, 16, 240, 64, 3, 16, 0, 64, 0,
+ 16, 0, 64, 0, 0, 48, 0, 3, 0, 16, 0, 6, 0, 16, 0, 4, 7, 48, 0, 4, 6,
+ 240, 32, 3, 3, 0, 224, 0, 0, 0, 32, 0, 0, 0, 96, 0 };*/
 uint8_t ColorMatrix = 1;
+int SetColorMatrix = 0;
+
+void delay_us(uint16_t us) //create delay function
+{
+	for (uint16_t i = 0; i < us; i++) {
+		for (uint8_t j = 0; j < 16; j++)
+			asm("NOP");
+		//Perform no operation //assembly code
+	}
+}
+
+void SaveSettings() {
+	int bp[8] = { utc_timezone, EventDate.tm_sec, EventDate.tm_min,
+			EventDate.tm_hour, EventDate.tm_mday, EventDate.tm_mon,
+			EventDate.tm_year, SetColorMatrix };
+	HAL_FLASH_Unlock();
+	FLASH_Erase_Sector(FLASH_SECTOR_7, FLASH_BANK_2, VOLTAGE_RANGE_1);
+	HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, SETTINGS_ADDRESS, &bp);
+	HAL_FLASH_Lock();
+}
+
+void RestoreSettings() {
+	int RSetting[8] = { 0 };
+	memcpy(RSetting, SETTINGS_ADDRESS, 32);
+	utc_timezone = RSetting[0];
+	EventDate.tm_sec = RSetting[1];
+	EventDate.tm_min = RSetting[2];
+	EventDate.tm_hour = RSetting[3];
+	EventDate.tm_mday = RSetting[4];
+	EventDate.tm_mon = RSetting[5];
+	EventDate.tm_year = RSetting[6];
+	SetColorMatrix = RSetting[7];
+	if (SetColorMatrix) {
+		ColorMatrix = SetColorMatrix;
+	}
+}
+
 void digitalWrite(GPIO_TypeDef *Port, uint16_t NumP, uint8_t stat) {
 	if (stat) {
 		HAL_GPIO_WritePin(Port, NumP, GPIO_PIN_SET);
@@ -103,7 +187,7 @@ void SetColor(uint8_t Color) {
 	ColorMatrix = Color;
 }
 
-void SetPixel(uint8_t Xp, uint8_t Yp, uint8_t N_p, uint8_t ON) {
+void SetPixel(uint8_t Xp, uint8_t Yp, uint8_t N_p, uint16_t ON) {
 	uint8_t n_byte = 0;
 	uint8_t bit_mask;
 	if (Yp >= 8) {
@@ -137,24 +221,45 @@ void SetPixel(uint8_t Xp, uint8_t Yp, uint8_t N_p, uint8_t ON) {
 	}
 }
 
-void SetPixelBigPanel(uint8_t Xp, uint8_t Yp, uint8_t ON) {
-	uint8_t N_p_adr;
-	if (Xp < 16) {
-		N_p_adr = 0;
-	} else {
-		N_p_adr = 1;
-		Xp -= 16;
-	}
-	SetPixel(Xp, Yp, N_p_adr, ON);
+void SetPixelBigPanel(uint8_t Xp, uint8_t Yp, uint16_t ON) {
+	uint8_t N_p_adr = Xp / 16 + 5 * (Yp / 16);
+	SetPixel(Xp % 16, Yp % 16, N_p_adr, ON);
 }
 
 void WriteChar(uint8_t x_s, uint8_t y_s, uint8_t char_id) {
-	for (uint8_t x_b = 0; x_b < 4; x_b++) {
-		for (uint8_t y_b = 0; y_b < 6; y_b++) {
+	for (uint8_t x_b = 0; x_b < FONT_CHAR_WIDTH; x_b++) {
+		for (uint8_t y_b = 0; y_b < FONT_CHAR_HEIGHT; y_b++) {
 			SetPixelBigPanel(x_s + x_b, y_s + y_b,
-					font_f_for16x16[(char_id - 48) * 4 + x_b] & (1 << y_b));
+					font_f_for16x16[(char_id - FONT_START_CHAR) * 8 + x_b]
+							& ((uint16_t) 1 << y_b));
 		}
 	}
+}
+
+void Clk_data(uint8_t n_p, uint8_t x_b, uint8_t y_b, uint8_t bit_mask,
+		uint8_t CM1, uint8_t CM2, uint8_t n_line) {
+	uint16_t CLK_P;
+	if (n_line) {
+		CLK_P = CLK1_Pin;
+		n_p += 5;
+	} else {
+		CLK_P = CLK_Pin;
+	}
+	digitalWrite(GPIOD, CLK_P, 0);
+
+	if (RAW_DISPLAY[n_p][x_b / 8 + y_b * 4] & bit_mask) {
+		CM1 = ColorMatrix;
+	}
+	if (RAW_DISPLAY[n_p][x_b / 8 + y_b * 4 + 16] & bit_mask) {
+		CM2 = ColorMatrix;
+	}
+	digitalWrite(GPIOA, R1_Pin, CM1 & 0b100);
+	digitalWrite(GPIOA, G1_Pin, CM1 & 0b10);
+	digitalWrite(GPIOC, B1_Pin, CM1 & 0b1);
+	digitalWrite(GPIOA, R2_Pin, CM2 & 0b100);
+	digitalWrite(GPIOC, G2_Pin, CM2 & 0b10);
+	digitalWrite(GPIOC, B2_Pin, CM2 & 0b1);
+	digitalWrite(GPIOD, CLK_P, 1);
 }
 
 void LoadAndShowBufOnPanel(void) {
@@ -166,25 +271,13 @@ void LoadAndShowBufOnPanel(void) {
 	uint8_t CM2;
 	digitalWrite(GPIOD, OE_Pin, 1);
 	for (y_b = 0; y_b < 4; y_b++) {
-		for (n_p = 0; n_p < N_panels; n_p++) {
+		for (n_p = 0; n_p < 5; n_p++) {
 			for (x_b = 0; x_b < 32; x_b++) {
 				CM1 = CM2 = 0;
 				bit_mask = 1 << (x_b % 8);
-				digitalWrite(GPIOD, CLK_Pin, 0);
-				if (RAW_DISPLAY[n_p][x_b / 8 + y_b * 4] & bit_mask) {
-					CM1 = ColorMatrix;
-				}
-				if (RAW_DISPLAY[n_p][x_b / 8 + y_b * 4 + 16] & bit_mask) {
-					CM2 = ColorMatrix;
-				}
-				digitalWrite(GPIOA, R1_Pin, CM1 & 0b100);
-				digitalWrite(GPIOA, G1_Pin, CM1 & 0b10);
-				digitalWrite(GPIOC, B1_Pin, CM1 & 0b1);
-				digitalWrite(GPIOA, R2_Pin, CM2 & 0b100);
-				digitalWrite(GPIOC, G2_Pin, CM2 & 0b10);
-				digitalWrite(GPIOC, B2_Pin, CM2 & 0b1);
 
-				digitalWrite(GPIOD, CLK_Pin, 1);
+				Clk_data(n_p, x_b, y_b, bit_mask, CM1, CM2, 0);
+				Clk_data(n_p, x_b, y_b, bit_mask, CM1, CM2, 1);
 
 			}
 		}
@@ -195,8 +288,7 @@ void LoadAndShowBufOnPanel(void) {
 		digitalWrite(GPIOC, B_Pin, (y_b & 0b10) > 0);
 
 		digitalWrite(GPIOD, OE_Pin, 0);
-		HAL_Delay(TOnLP);
-
+		delay_us(TOnLP);
 	}
 }
 
@@ -219,13 +311,14 @@ char* S_Parser(char *string) {
 uint64_t EventTimeSec;
 uint64_t NowTimeSec;
 uint64_t NowTimeSec_new;
-#define SIZE_BF_SET 26
+#define SIZE_BF_SET 28
 char SET_data[SIZE_BF_SET] = { 0 };
 const char str_SET_data[4] = "SET";
-//формат: SET,+3,170222,120000,END\n
+//формат: SET,+3,170222,120000,0,END\n
 //+3 - utc_timezone
 //170222 - дата в формате DDMMYY
 //120000 - время в формате HHMMSS
+//0 - цвет, 0 - перебор цветов, 1-7 - 3х-битный RGB-цвет
 void GetSetting() {
 	char *pstr = strstr(SET_data, str_SET_data);  //Поиск строки
 	char *istr = S_Parser(pstr);  //Парсим значения из SET
@@ -247,11 +340,18 @@ void GetSetting() {
 					&EventDate.tm_sec);
 			EventDate.tm_year += 100;
 			break;
+		case 4:
+			sscanf(istr, "%1d", &SetColorMatrix);
+			if (SetColorMatrix) {
+				ColorMatrix = SetColorMatrix;
+			}
+			break;
 		}
 		istr = S_Parser(NULL);  // Выделение очередной части строки
 		i_d_SET++;
 	}
 	EventTimeSec = mktime(&EventDate);
+	SaveSettings();
 }
 
 const char strfind[4] = "RMC";
@@ -259,7 +359,6 @@ const char strfind[4] = "RMC";
 char nmea_data[SIZE_BF] = { 0 };
 #define Rx1Buf_SIZE 20
 char Rx1Buf[Rx1Buf_SIZE] = { 0 };
-//int s; //секунды, получаемые с приемника
 
 void Set_Date_and_Time(int h, int m, int s, int dd, int mm, int yy) {
 	NowTime.tm_sec = s; //секунды
@@ -368,24 +467,8 @@ int main(void) {
 	HAL_Init();
 
 	/* USER CODE BEGIN Init */
-	/*uint32_t readData[3] = {0, 0, 0};
-	 EEPROM_Write(PARAM_1, 9<<8 & 30);
-	 EEPROM_Write(PARAM_2, 13<<8 & 12);
-	 EEPROM_Write(PARAM_3, 2<<8 & 122);
 
-	 EEPROM_Read(PARAM_1, &readData[0]);
-	 EEPROM_Read(PARAM_2, &readData[1]);
-	 EEPROM_Read(PARAM_3, &readData[2]);
-
-	 EventDate.tm_sec = readData[0]>>8; //секунды
-	 EventDate.tm_min = readData[0]&0xFF; //минуты
-	 EventDate.tm_hour = readData[1]>>8; //час
-	 EventDate.tm_mday = readData[1]&0xFF; //день
-	 EventDate.tm_mon = readData[2]>>8; //месяц - 1, т.е. тут указан март
-	 EventDate.tm_year = readData[2]&0xFF; //год с 1900 года
-	 EventDate.tm_isdst = 0; //флаг перехода на летнее время
-	 */
-	EventDate.tm_sec = 9; //секунды
+	EventDate.tm_sec = 49; //секунды
 	EventDate.tm_min = 30; //минуты
 	EventDate.tm_hour = 13; //час
 	EventDate.tm_mday = 12; //день
@@ -408,7 +491,6 @@ int main(void) {
 	MX_GPIO_Init();
 	MX_TIM1_Init();
 	MX_USART3_UART_Init();
-	MX_DMA_Init();
 	MX_USART1_UART_Init();
 	/* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim1);
@@ -416,12 +498,34 @@ int main(void) {
 	HAL_UART_Receive_DMA(&huart1, (uint8_t*) &Rx1Buf, Rx1Buf_SIZE);
 
 	HAL_UART_Receive_IT(&huart3, (uint8_t*) &SET_data, SIZE_BF_SET - 1);
+
+	//вкл. выход упр. на панели
+	HAL_GPIO_WritePin(GPIOD, VCC0_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOD, VCC1_Pin, GPIO_PIN_SET);
+
+	RestoreSettings();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+
 	//SetPixel(2, 3, 0, 1);
-	SetColor(1);
+	/*
+	 SetPixelBigPanel(64, 0, 1);
+	 SetPixelBigPanel(65, 1, 1);
+	 SetPixelBigPanel(66, 2, 1);
+	 SetPixelBigPanel(67, 3, 1);
+	 SetPixelBigPanel(68, 4, 1);
+	 SetPixelBigPanel(69, 5, 1);
+	 SetPixelBigPanel(70, 6, 1);
+	 SetPixelBigPanel(71, 7, 1);
+	 SetPixelBigPanel(72, 8, 1);
+	 SetPixelBigPanel(73, 9, 1);*/
+
+	//SetColor(4); //R
+	//SetColor(2); //G
+	//SetColor(1); //B
+	//WriteChar(64, 0,'1');
 	uint16_t timer_i = 0;
 	uint8_t i_c = 0;
 	char d_time[4];
@@ -430,58 +534,66 @@ int main(void) {
 		LoadAndShowBufOnPanel();
 
 		timer_i++;
-		if (timer_i % 100 == 0) {
-			if (i_c < 8) {
-				SetColor(i_c);
-			} else {
-				i_c = 0;
+		if (SetColorMatrix == 0) {
+			if (timer_i % 100 == 0) {
+				if (i_c < 8) {
+					SetColor(i_c);
+				} else {
+					i_c = 0;
+				}
+				i_c++;
 			}
-			i_c++;
 		}
-		if (timer_i % 20 == 0) {
-			/*
-			 //Для отладки выводи время NowTime
-			 sprintf(d_time, "%03d", (int) (NowTime.tm_year));
-			 for (uint8_t sm_t = 0; sm_t < 3; sm_t++) {
-			 WriteChar(sm_t * 5, 1, d_time[sm_t]);
-			 }
+		if (timer_i % 1 == 0) {
 
-			 if (1) {
-			 sprintf(s_time, "%02d:%02d:%02d", (int) (NowTime.tm_hour)+7,
-			 (int) (NowTime.tm_min), (int) (NowTime.tm_sec));
-			 for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
-			 WriteChar(sm_t * 4, 9, s_time[sm_t]);
-			 }
-			 } else {
-			 sprintf(s_time, "%02d:%02d:%02d", (int) (NowTime.tm_mday),
-			 (int) (NowTime.tm_mon)+1, (int) (NowTime.tm_year));
-			 for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
-			 WriteChar(sm_t * 4, 9, s_time[sm_t]);
-			 }
-			 }*/
-
-			//NowTimeSec = mktime(&NowTime) + utc_timezone * 3600;
 			if (EventTimeSec > NowTimeSec) {
 				EventTimer = EventTimeSec - NowTimeSec;
 				sprintf(d_time, "%03d", (int) (EventTimer / 86400));
 				for (uint8_t sm_t = 0; sm_t < 3; sm_t++) {
-					WriteChar(sm_t * 5, 1, d_time[sm_t]);
+					WriteChar(23 + sm_t * (FONT_CHAR_WIDTH + 5), 1,
+							d_time[sm_t]);
 				}
 				sprintf(s_time, "%02d:%02d:%02d",
 						(int) (EventTimer / 3600 % 24),
 						(int) (EventTimer / 60 % 60), (int) (EventTimer % 60));
 				for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
-					WriteChar(sm_t * 4, 9, s_time[sm_t]);
+					WriteChar(1 + sm_t * (FONT_CHAR_WIDTH + 2), 17,
+							s_time[sm_t]);
 				}
 			} else {
 				//Выводим на экран сообщение что счетчик оттикал
 				for (uint8_t sm_t = 0; sm_t < 3; sm_t++) {
-					WriteChar(sm_t * 5, 1, ':');
+					WriteChar(23 + sm_t * (FONT_CHAR_WIDTH + 5), 1, ':');
 				}
 				for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
-					WriteChar(sm_t * 4, 9, ':');
+					WriteChar(1 + sm_t * (FONT_CHAR_WIDTH + 2), 17, ':');
 				}
 			}
+
+			/*
+			 //Для отладки выводи время NowTime
+			 sprintf(d_time, "%03d", (int) (NowTime.tm_year));
+			 for (uint8_t sm_t = 0; sm_t < 3; sm_t++) {
+			 WriteChar(64+sm_t * 4, 2, d_time[sm_t]);
+			 }
+
+			 if (1) {
+			 sprintf(s_time, "%02d:%02d:%02d", (int) (NowTime.tm_hour) + 7,
+			 (int) (NowTime.tm_min), (int) (NowTime.tm_sec));
+			 for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
+			 WriteChar(1 + sm_t * (FONT_CHAR_WIDTH + 2), 17,
+			 s_time[sm_t]);
+			 }
+			 } else {
+			 sprintf(s_time, "%02d:%02d:%02d", (int) (NowTime.tm_mday),
+			 (int) (NowTime.tm_mon) + 1, (int) (NowTime.tm_year));
+			 for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
+			 WriteChar(1 + sm_t * (FONT_CHAR_WIDTH + 2), 17,
+			 s_time[sm_t]);
+			 }
+			 }
+			 */
+			//NowTimeSec = mktime(&NowTime) + utc_timezone * 3600;
 		}
 
 		/* USER CODE END WHILE */
@@ -599,7 +711,7 @@ static void MX_USART1_UART_Init(void) {
 	huart1.Init.WordLength = UART_WORDLENGTH_8B;
 	huart1.Init.StopBits = UART_STOPBITS_1;
 	huart1.Init.Parity = UART_PARITY_NONE;
-	huart1.Init.Mode = UART_MODE_RX;
+	huart1.Init.Mode = UART_MODE_TX_RX;
 	huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	huart1.Init.OverSampling = UART_OVERSAMPLING_16;
 	huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
@@ -671,21 +783,6 @@ static void MX_USART3_UART_Init(void) {
 }
 
 /**
- * Enable DMA controller clock
- */
-static void MX_DMA_Init(void) {
-
-	/* DMA controller clock enable */
-	__HAL_RCC_DMA1_CLK_ENABLE();
-
-	/* DMA interrupt init */
-	/* DMA1_Stream0_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-
-}
-
-/**
  * @brief GPIO Initialization Function
  * @param None
  * @retval None
@@ -700,7 +797,8 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOD, OE_Pin | CLK_Pin | STB_Pin | A_Pin,
+	HAL_GPIO_WritePin(GPIOD,
+	VCC1_Pin | VCC0_Pin | CLK1_Pin | OE_Pin | CLK_Pin | STB_Pin | A_Pin,
 			GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
@@ -709,8 +807,10 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOA, R2_Pin | R1_Pin | G1_Pin, GPIO_PIN_RESET);
 
-	/*Configure GPIO pins : OE_Pin CLK_Pin STB_Pin A_Pin */
-	GPIO_InitStruct.Pin = OE_Pin | CLK_Pin | STB_Pin | A_Pin;
+	/*Configure GPIO pins : VCC1_Pin VCC0_Pin CLK1_Pin OE_Pin
+	 CLK_Pin STB_Pin A_Pin */
+	GPIO_InitStruct.Pin = VCC1_Pin | VCC0_Pin | CLK1_Pin | OE_Pin | CLK_Pin
+			| STB_Pin | A_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
