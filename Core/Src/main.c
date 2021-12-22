@@ -88,7 +88,13 @@ const unsigned short font_f_for16x16[FONT_ARRAY_LENGTH] = { 0b0000111111111110,
 		0b0000001100011000, 0b0000001100011000, 0b0000000000000000,
 		0b0000000000000000, 0b0000000000000000  // Символ 58  <:>
 		};
-#define SETTINGS_ADDRESS 0x81E0020
+#define SETTINGS_ADDRESS 0x81E0020 //адрес для сохранения настроек
+#define trig_time_err 60 //калибровка каждые trig_time_err секунд
+#define digitalWrite(port, pin, st) if(st){port->BSRR = pin;}else{port->BSRR = (uint32_t)pin << 16;}
+#define SIZE_BF_SET 28 //размер команды настройки
+#define SIZE_BF 600 //размер кольцевого буфера приемника gps nmea сообщений
+#define Rx1Buf_SIZE 100 //размер ожидаемой части для добавления в кольцевой буфер
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -102,6 +108,7 @@ TIM_HandleTypeDef htim1;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_usart1_rx;
 
 /* USER CODE BEGIN PV */
 
@@ -112,6 +119,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -120,24 +128,9 @@ static void MX_USART1_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-uint16_t TOnLP = 50;
+uint16_t TOnLP = 10;
 
-uint8_t RAW_DISPLAY[10][32];/* = { 1, 32, 224, 8, 3, 48, 32, 24, 6, 16, 48, 16, 4,
- 16, 16, 16, 8, 128, 8, 7, 8, 0, 8, 0, 12, 0, 16, 0, 7, 0, 48, 0, 0, 128,
- 0, 1, 0, 192, 0, 1, 0, 248, 96, 1, 0, 128, 192, 0, 1, 128, 0, 0, 1, 192,
- 0, 0, 1, 64, 0, 0, 1, 0, 0, 0, 0, 16, 0, 16, 0, 0, 0, 24, 7, 0, 224, 8,
- 12, 0, 56, 12, 0, 48, 96, 0, 0, 252, 192, 31, 3, 0, 0, 0, 6, 0, 0, 0, 0,
- 0, 0, 2, 0, 0, 0, 2, 3, 128, 192, 3, 6, 192, 64, 3, 0, 192, 96, 0, 0, 0,
- 96, 0, 8, 0, 64, 0, 13, 0, 192, 0, 0, 48, 0, 2, 0, 16, 0, 2, 4, 16, 0,
- 2, 4, 16, 0, 2, 8, 0, 192, 1, 15, 0, 192, 1, 0, 0, 128, 0, 0, 0, 128, 0,
- 0, 32, 0, 0, 0, 32, 0, 0, 0, 32, 0, 0, 7, 224, 224, 3, 0, 16, 96, 3, 0,
- 240, 32, 1, 0, 0, 32, 0, 0, 0, 96, 0, 0, 224, 0, 3, 0, 16, 0, 0, 0, 8,
- 0, 0, 0, 12, 0, 0, 32, 56, 0, 16, 39, 240, 248, 8, 36, 128, 8, 7, 52, 0,
- 8, 0, 0, 48, 0, 4, 0, 0, 0, 4, 3, 0, 144, 2, 6, 0, 240, 3, 1, 0, 240, 1,
- 0, 0, 128, 0, 0, 0, 128, 0, 0, 0, 128, 0, 0, 64, 0, 8, 0, 64, 0, 12, 0,
- 192, 0, 7, 3, 240, 240, 1, 24, 24, 192, 2, 16, 240, 64, 3, 16, 0, 64, 0,
- 16, 0, 64, 0, 0, 48, 0, 3, 0, 16, 0, 6, 0, 16, 0, 4, 7, 48, 0, 4, 6,
- 240, 32, 3, 3, 0, 224, 0, 0, 0, 32, 0, 0, 0, 96, 0 };*/
+uint8_t RAW_DISPLAY[20][32];
 uint8_t ColorMatrix = 1;
 int SetColorMatrix = 0;
 
@@ -156,33 +149,24 @@ void SaveSettings() {
 			EventDate.tm_year, SetColorMatrix };
 	HAL_FLASH_Unlock();
 	FLASH_Erase_Sector(FLASH_SECTOR_7, FLASH_BANK_2, VOLTAGE_RANGE_1);
-	HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, SETTINGS_ADDRESS, &bp);
+	HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, SETTINGS_ADDRESS, *bp);
 	HAL_FLASH_Lock();
 }
 
 void RestoreSettings() {
-	int RSetting[8] = { 0 };
-	memcpy(RSetting, SETTINGS_ADDRESS, 32);
-	utc_timezone = RSetting[0];
-	EventDate.tm_sec = RSetting[1];
-	EventDate.tm_min = RSetting[2];
-	EventDate.tm_hour = RSetting[3];
-	EventDate.tm_mday = RSetting[4];
-	EventDate.tm_mon = RSetting[5];
-	EventDate.tm_year = RSetting[6];
-	SetColorMatrix = RSetting[7];
+	utc_timezone = *(uint32_t*) SETTINGS_ADDRESS;
+	EventDate.tm_sec = *(uint32_t*) (SETTINGS_ADDRESS + 4);
+	EventDate.tm_min = *(uint32_t*) (SETTINGS_ADDRESS + 8);
+	EventDate.tm_hour = *(uint32_t*) (SETTINGS_ADDRESS + 12);
+	EventDate.tm_mday = *(uint32_t*) (SETTINGS_ADDRESS + 16);
+	EventDate.tm_mon = *(uint32_t*) (SETTINGS_ADDRESS + 20);
+	EventDate.tm_year = *(uint32_t*) (SETTINGS_ADDRESS + 24);
+	SetColorMatrix = *(uint32_t*) (SETTINGS_ADDRESS + 28);
 	if (SetColorMatrix) {
 		ColorMatrix = SetColorMatrix;
 	}
 }
 
-void digitalWrite(GPIO_TypeDef *Port, uint16_t NumP, uint8_t stat) {
-	if (stat) {
-		HAL_GPIO_WritePin(Port, NumP, GPIO_PIN_SET);
-	} else {
-		HAL_GPIO_WritePin(Port, NumP, GPIO_PIN_RESET);
-	}
-}
 void SetColor(uint8_t Color) {
 	ColorMatrix = Color;
 }
@@ -222,7 +206,23 @@ void SetPixel(uint8_t Xp, uint8_t Yp, uint8_t N_p, uint16_t ON) {
 }
 
 void SetPixelBigPanel(uint8_t Xp, uint8_t Yp, uint16_t ON) {
-	uint8_t N_p_adr = Xp / 16 + 5 * (Yp / 16);
+	uint8_t N_p_adr;
+	switch (Yp / 16) {
+	case 0:
+		N_p_adr = 4 - (Xp / 16);
+		Xp = 79 - Xp;
+		break;
+	case 1:
+		N_p_adr = Xp / 16 + 5;
+		break;
+	case 2:
+		N_p_adr = Xp / 16 + 15;
+		break;
+	case 3:
+		N_p_adr = 14 - (Xp / 16);
+		Xp = 79 - Xp;
+		break;
+	}
 	SetPixel(Xp % 16, Yp % 16, N_p_adr, ON);
 }
 
@@ -230,8 +230,7 @@ void WriteChar(uint8_t x_s, uint8_t y_s, uint8_t char_id) {
 	for (uint8_t x_b = 0; x_b < FONT_CHAR_WIDTH; x_b++) {
 		for (uint8_t y_b = 0; y_b < FONT_CHAR_HEIGHT; y_b++) {
 			SetPixelBigPanel(x_s + x_b, y_s + y_b,
-					font_f_for16x16[(char_id - FONT_START_CHAR) * 8 + x_b]
-							& ((uint16_t) 1 << y_b));
+					font_f_for16x16[char_id * 8 + x_b] & ((uint16_t) 1 << y_b));
 		}
 	}
 }
@@ -271,7 +270,7 @@ void LoadAndShowBufOnPanel(void) {
 	uint8_t CM2;
 	digitalWrite(GPIOD, OE_Pin, 1);
 	for (y_b = 0; y_b < 4; y_b++) {
-		for (n_p = 0; n_p < 5; n_p++) {
+		for (n_p = 0; n_p < 10; n_p++) {
 			for (x_b = 0; x_b < 32; x_b++) {
 				CM1 = CM2 = 0;
 				bit_mask = 1 << (x_b % 8);
@@ -311,7 +310,6 @@ char* S_Parser(char *string) {
 uint64_t EventTimeSec;
 uint64_t NowTimeSec;
 uint64_t NowTimeSec_new;
-#define SIZE_BF_SET 28
 char SET_data[SIZE_BF_SET] = { 0 };
 const char str_SET_data[4] = "SET";
 //формат: SET,+3,170222,120000,0,END\n
@@ -355,20 +353,8 @@ void GetSetting() {
 }
 
 const char strfind[4] = "RMC";
-#define SIZE_BF 600
 char nmea_data[SIZE_BF] = { 0 };
-#define Rx1Buf_SIZE 20
 char Rx1Buf[Rx1Buf_SIZE] = { 0 };
-
-void Set_Date_and_Time(int h, int m, int s, int dd, int mm, int yy) {
-	NowTime.tm_sec = s; //секунды
-	NowTime.tm_min = m; //минуты
-	NowTime.tm_hour = h; //час
-	NowTime.tm_mday = dd; //день
-	NowTime.tm_mon = mm; //месяц
-	NowTime.tm_year = yy; //год с 1900 года
-}
-
 void Get_Date_and_Time() {
 	char *pstr = strstr(nmea_data, strfind);  //Поиск строки
 	char *istr = S_Parser(pstr);  //Парсим значения из RMC
@@ -392,6 +378,7 @@ void Get_Date_and_Time() {
 		istr = S_Parser(NULL);  // Выделение очередной части строки
 	}
 }
+
 uint16_t oldPos = 0;
 uint16_t newPos = 0;
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
@@ -426,11 +413,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	}
 }
 
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
-	if (huart->Instance == USART1) {
-
-	}
-}
 uint16_t time_err = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM1) //check if the interrupt comes from TIM1
@@ -439,7 +421,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		NowTimeSec++;
 		if (NowTimeSec != NowTimeSec_new) {
 			time_err++;
-			if (time_err > 5) {
+			if (time_err > trig_time_err) {
 				NowTimeSec = NowTimeSec_new;
 				time_err = 0;
 			}
@@ -448,6 +430,26 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		}
 
 		HAL_UART_Receive_IT(&huart3, (uint8_t*) &SET_data, SIZE_BF_SET - 1);
+	}
+}
+
+void print_two_dig(uint8_t x_start, uint8_t y_start, uint8_t two_dig) {
+	WriteChar(x_start, y_start, two_dig / 10);
+	WriteChar(x_start + FONT_CHAR_WIDTH + 2, y_start, two_dig % 10);
+}
+
+void print_three_dig(uint8_t x_start, uint8_t y_start, uint16_t three_dig) {
+	uint8_t dig1 = (uint16_t) (three_dig / 100);
+	uint8_t dig2 = (uint16_t) (three_dig % 100 / 10);
+	uint8_t dig3 = (uint16_t) (three_dig % 10);
+	if ((dig1 == 0) && (dig2 == 0)) {
+		WriteChar(x_start, y_start, 0);
+		WriteChar(x_start + FONT_CHAR_WIDTH + 5, y_start, dig3);
+		WriteChar(x_start + FONT_CHAR_WIDTH + 18, y_start, 0);
+	} else {
+		WriteChar(x_start, y_start, dig1);
+		WriteChar(x_start + FONT_CHAR_WIDTH + 5, y_start, dig2);
+		WriteChar(x_start + FONT_CHAR_WIDTH + 18, y_start, dig3);
 	}
 }
 /* USER CODE END 0 */
@@ -491,6 +493,7 @@ int main(void) {
 	MX_GPIO_Init();
 	MX_TIM1_Init();
 	MX_USART3_UART_Init();
+	MX_DMA_Init();
 	MX_USART1_UART_Init();
 	/* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim1);
@@ -510,6 +513,7 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 
 	//SetPixel(2, 3, 0, 1);
+
 	/*
 	 SetPixelBigPanel(64, 0, 1);
 	 SetPixelBigPanel(65, 1, 1);
@@ -525,17 +529,22 @@ int main(void) {
 	//SetColor(4); //R
 	//SetColor(2); //G
 	//SetColor(1); //B
-	//WriteChar(64, 0,'1');
+
+	//WriteChar(64, 0, 1);
+
 	uint16_t timer_i = 0;
 	uint8_t i_c = 0;
-	char d_time[4];
-	char s_time[9];
 	while (1) {
+
 		LoadAndShowBufOnPanel();
+
+		if (HAL_UART_GetState(&huart1) != HAL_UART_STATE_BUSY_RX) {
+			HAL_UART_Receive_DMA(&huart1, (uint8_t*) &Rx1Buf, Rx1Buf_SIZE);
+		}
 
 		timer_i++;
 		if (SetColorMatrix == 0) {
-			if (timer_i % 100 == 0) {
+			if (timer_i % 300 == 0) {
 				if (i_c < 8) {
 					SetColor(i_c);
 				} else {
@@ -544,56 +553,31 @@ int main(void) {
 				i_c++;
 			}
 		}
-		if (timer_i % 1 == 0) {
+		if (timer_i % 10 == 0) {
 
 			if (EventTimeSec > NowTimeSec) {
 				EventTimer = EventTimeSec - NowTimeSec;
-				sprintf(d_time, "%03d", (int) (EventTimer / 86400));
-				for (uint8_t sm_t = 0; sm_t < 3; sm_t++) {
-					WriteChar(23 + sm_t * (FONT_CHAR_WIDTH + 5), 1,
-							d_time[sm_t]);
-				}
-				sprintf(s_time, "%02d:%02d:%02d",
-						(int) (EventTimer / 3600 % 24),
-						(int) (EventTimer / 60 % 60), (int) (EventTimer % 60));
-				for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
-					WriteChar(1 + sm_t * (FONT_CHAR_WIDTH + 2), 17,
-							s_time[sm_t]);
-				}
-			} else {
-				//Выводим на экран сообщение что счетчик оттикал
-				for (uint8_t sm_t = 0; sm_t < 3; sm_t++) {
-					WriteChar(23 + sm_t * (FONT_CHAR_WIDTH + 5), 1, ':');
-				}
-				for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
-					WriteChar(1 + sm_t * (FONT_CHAR_WIDTH + 2), 17, ':');
-				}
+				print_three_dig(23, 12, (uint16_t) (EventTimer / 86400));
+				print_two_dig(5, 36, (uint8_t) (EventTimer / 3600 % 24));
+				WriteChar(23, 36, 10);
+				print_two_dig(31, 36, (uint8_t) (EventTimer / 60 % 60));
+				WriteChar(49, 36, 10);
+				print_two_dig(57, 36, (uint8_t) (EventTimer % 60));
 			}
+		} else {
+			//Выводим на экран сообщение что счетчик оттикал
+			WriteChar(23, 12, 10);
+			WriteChar(36, 12, 10);
+			WriteChar(49, 12, 10);
 
-			/*
-			 //Для отладки выводи время NowTime
-			 sprintf(d_time, "%03d", (int) (NowTime.tm_year));
-			 for (uint8_t sm_t = 0; sm_t < 3; sm_t++) {
-			 WriteChar(64+sm_t * 4, 2, d_time[sm_t]);
-			 }
-
-			 if (1) {
-			 sprintf(s_time, "%02d:%02d:%02d", (int) (NowTime.tm_hour) + 7,
-			 (int) (NowTime.tm_min), (int) (NowTime.tm_sec));
-			 for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
-			 WriteChar(1 + sm_t * (FONT_CHAR_WIDTH + 2), 17,
-			 s_time[sm_t]);
-			 }
-			 } else {
-			 sprintf(s_time, "%02d:%02d:%02d", (int) (NowTime.tm_mday),
-			 (int) (NowTime.tm_mon) + 1, (int) (NowTime.tm_year));
-			 for (uint8_t sm_t = 0; sm_t < 8; sm_t++) {
-			 WriteChar(1 + sm_t * (FONT_CHAR_WIDTH + 2), 17,
-			 s_time[sm_t]);
-			 }
-			 }
-			 */
-			//NowTimeSec = mktime(&NowTime) + utc_timezone * 3600;
+			WriteChar(05, 36, 10);
+			WriteChar(15, 36, 10);
+			WriteChar(23, 36, 10);
+			WriteChar(31, 36, 10);
+			WriteChar(41, 36, 10);
+			WriteChar(49, 36, 10);
+			WriteChar(57, 36, 10);
+			WriteChar(67, 36, 10);
 		}
 
 		/* USER CODE END WHILE */
@@ -707,11 +691,11 @@ static void MX_USART1_UART_Init(void) {
 
 	/* USER CODE END USART1_Init 1 */
 	huart1.Instance = USART1;
-	huart1.Init.BaudRate = 115200;
+	huart1.Init.BaudRate = 9600;
 	huart1.Init.WordLength = UART_WORDLENGTH_8B;
 	huart1.Init.StopBits = UART_STOPBITS_1;
 	huart1.Init.Parity = UART_PARITY_NONE;
-	huart1.Init.Mode = UART_MODE_TX_RX;
+	huart1.Init.Mode = UART_MODE_RX;
 	huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	huart1.Init.OverSampling = UART_OVERSAMPLING_16;
 	huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
@@ -779,6 +763,21 @@ static void MX_USART3_UART_Init(void) {
 	/* USER CODE BEGIN USART3_Init 2 */
 
 	/* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+ * Enable DMA controller clock
+ */
+static void MX_DMA_Init(void) {
+
+	/* DMA controller clock enable */
+	__HAL_RCC_DMA1_CLK_ENABLE();
+
+	/* DMA interrupt init */
+	/* DMA1_Stream0_IRQn interrupt configuration */
+	HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
 
 }
 
