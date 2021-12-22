@@ -442,10 +442,10 @@ void print_three_dig(uint8_t x_start, uint8_t y_start, uint16_t three_dig) {
 	uint8_t dig1 = (uint16_t) (three_dig / 100);
 	uint8_t dig2 = (uint16_t) (three_dig % 100 / 10);
 	uint8_t dig3 = (uint16_t) (three_dig % 10);
-	if ((dig1 == 0) && (dig2 == 0)) {
-		WriteChar(x_start, y_start, 0);
+	if (three_dig < 10) {
+		WriteChar(x_start, y_start, 10);
 		WriteChar(x_start + FONT_CHAR_WIDTH + 5, y_start, dig3);
-		WriteChar(x_start + FONT_CHAR_WIDTH + 18, y_start, 0);
+		WriteChar(x_start + FONT_CHAR_WIDTH + 18, y_start, 10);
 	} else {
 		WriteChar(x_start, y_start, dig1);
 		WriteChar(x_start + FONT_CHAR_WIDTH + 5, y_start, dig2);
@@ -513,7 +513,6 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 
 	//SetPixel(2, 3, 0, 1);
-
 	/*
 	 SetPixelBigPanel(64, 0, 1);
 	 SetPixelBigPanel(65, 1, 1);
@@ -529,9 +528,7 @@ int main(void) {
 	//SetColor(4); //R
 	//SetColor(2); //G
 	//SetColor(1); //B
-
 	//WriteChar(64, 0, 1);
-
 	uint16_t timer_i = 0;
 	uint8_t i_c = 0;
 	while (1) {
