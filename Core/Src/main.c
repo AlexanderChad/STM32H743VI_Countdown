@@ -149,19 +149,21 @@ void SaveSettings() {
 			EventDate.tm_year, SetColorMatrix };
 	HAL_FLASH_Unlock();
 	FLASH_Erase_Sector(FLASH_SECTOR_7, FLASH_BANK_2, VOLTAGE_RANGE_1);
-	HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, SETTINGS_ADDRESS, *bp);
+	HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, SETTINGS_ADDRESS, &bp);
 	HAL_FLASH_Lock();
 }
 
 void RestoreSettings() {
-	utc_timezone = *(uint32_t*) SETTINGS_ADDRESS;
-	EventDate.tm_sec = *(uint32_t*) (SETTINGS_ADDRESS + 4);
-	EventDate.tm_min = *(uint32_t*) (SETTINGS_ADDRESS + 8);
-	EventDate.tm_hour = *(uint32_t*) (SETTINGS_ADDRESS + 12);
-	EventDate.tm_mday = *(uint32_t*) (SETTINGS_ADDRESS + 16);
-	EventDate.tm_mon = *(uint32_t*) (SETTINGS_ADDRESS + 20);
-	EventDate.tm_year = *(uint32_t*) (SETTINGS_ADDRESS + 24);
-	SetColorMatrix = *(uint32_t*) (SETTINGS_ADDRESS + 28);
+	int RSetting[8] = { 0 };
+	memcpy(RSetting, SETTINGS_ADDRESS, 32);
+	utc_timezone = RSetting[0];
+	EventDate.tm_sec = RSetting[1];
+	EventDate.tm_min = RSetting[2];
+	EventDate.tm_hour = RSetting[3];
+	EventDate.tm_mday = RSetting[4];
+	EventDate.tm_mon = RSetting[5];
+	EventDate.tm_year = RSetting[6];
+	SetColorMatrix = RSetting[7];
 	if (SetColorMatrix) {
 		ColorMatrix = SetColorMatrix;
 	}
