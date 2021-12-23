@@ -10,7 +10,7 @@
 Настройка производится отправкой команды вида `SET,+3,170222,120000,0,END\n` по UART (разъем `PC_UART`, Baud Rate: `115200`), где `+3` - utc_timezone (часовой пояс); `170222` - дата Event'а в формате DDMMYY; `120000` - время Event'а в формате HHMMSS; `0` - цвет, 0 - перебор цветов, 1-7 - фиксированный 3х-битный RGB-цвет. Настройки сохраняются во внутренней flash memory STM32H743VI.  
 
 Разметка дисплея (рамки - места символов, бордовое обрамление - рамка держателя матриц, перекрывающая закрашенные светодиоды):  
-![Разметка дисплея. Размер 1 к 1.](https://github.com/AlexanderChad/STM32H743VI_Countdown/blob/main/display_5x4_markup.png "Размер 1 к 1")
+![Разметка дисплея. Размер 1 к 1.](https://github.com/AlexanderChad/STM32H743VI_Countdown/blob/2_color_80x64/display_5x4_markup.png "Размер 1 к 1")
 
 Печатная плата расширения:
 ![Плата расширения. Вид снизу, с компонентами.](https://github.com/AlexanderChad/STM32H743VI_Countdown/blob/main/pcb_b.png)
