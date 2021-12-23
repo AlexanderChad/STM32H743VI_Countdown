@@ -132,7 +132,7 @@ uint16_t TOnLP = 10;
 
 uint8_t RAW_DISPLAY[20][32];
 uint8_t ColorMatrix = 0;
-uint8_t ColorMatrix0 = 4;
+const uint8_t ColorMatrix0 = 4;
 uint8_t ColorMatrix1 = 7;
 int SetColorMatrix = 7;
 
