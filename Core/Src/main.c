@@ -240,7 +240,7 @@ void Clk_data(uint8_t n_p, uint8_t x_b, uint8_t y_b, uint8_t bit_mask,
 	uint16_t CLK_P;
 	if (n_line) {
 		CLK_P = CLK1_Pin;
-		n_p += 5;
+		n_p += 10;
 	} else {
 		CLK_P = CLK_Pin;
 	}
