@@ -128,7 +128,8 @@ static void MX_USART1_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-uint16_t TOnLP = 10;
+uint16_t TOnLP = 250;
+uint16_t Dl_CLK = 10;
 
 uint8_t RAW_DISPLAY[20][32];
 uint8_t ColorMatrix = 0;
@@ -136,10 +137,17 @@ const uint8_t ColorMatrix0 = 4;
 uint8_t ColorMatrix1 = 7;
 int SetColorMatrix = 7;
 
+void delay_clk(uint16_t clk) //create delay function
+{
+	for (uint16_t j = 0; j < clk; j++)
+		asm("NOP");
+	//Perform no operation //assembly code
+}
+
 void delay_us(uint16_t us) //create delay function
 {
 	for (uint16_t i = 0; i < us; i++) {
-		for (uint8_t j = 0; j < 16; j++)
+		for (uint16_t j = 0; j < 480; j++)
 			asm("NOP");
 		//Perform no operation //assembly code
 	}
@@ -151,19 +159,21 @@ void SaveSettings() {
 			EventDate.tm_year, SetColorMatrix };
 	HAL_FLASH_Unlock();
 	FLASH_Erase_Sector(FLASH_SECTOR_7, FLASH_BANK_2, VOLTAGE_RANGE_1);
-	HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, SETTINGS_ADDRESS, *bp);
+	HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, SETTINGS_ADDRESS, &bp);
 	HAL_FLASH_Lock();
 }
 
 void RestoreSettings() {
-	utc_timezone = *(uint32_t*) SETTINGS_ADDRESS;
-	EventDate.tm_sec = *(uint32_t*) (SETTINGS_ADDRESS + 4);
-	EventDate.tm_min = *(uint32_t*) (SETTINGS_ADDRESS + 8);
-	EventDate.tm_hour = *(uint32_t*) (SETTINGS_ADDRESS + 12);
-	EventDate.tm_mday = *(uint32_t*) (SETTINGS_ADDRESS + 16);
-	EventDate.tm_mon = *(uint32_t*) (SETTINGS_ADDRESS + 20);
-	EventDate.tm_year = *(uint32_t*) (SETTINGS_ADDRESS + 24);
-	SetColorMatrix = *(uint32_t*) (SETTINGS_ADDRESS + 28);
+	int RSetting[8] = { 0 };
+	memcpy(RSetting, SETTINGS_ADDRESS, 32);
+	utc_timezone = RSetting[0];
+	EventDate.tm_sec = RSetting[1];
+	EventDate.tm_min = RSetting[2];
+	EventDate.tm_hour = RSetting[3];
+	EventDate.tm_mday = RSetting[4];
+	EventDate.tm_mon = RSetting[5];
+	EventDate.tm_year = RSetting[6];
+	SetColorMatrix = RSetting[7];
 	if (SetColorMatrix) {
 		ColorMatrix1 = SetColorMatrix;
 	}
@@ -209,6 +219,7 @@ void SetPixelBigPanel(uint8_t Xp, uint8_t Yp, uint16_t ON) {
 	case 0:
 		N_p_adr = 4 - (Xp / 16);
 		Xp = 79 - Xp;
+		Yp = 63 - Yp;
 		break;
 	case 1:
 		N_p_adr = Xp / 16 + 5;
@@ -219,6 +230,7 @@ void SetPixelBigPanel(uint8_t Xp, uint8_t Yp, uint16_t ON) {
 	case 3:
 		N_p_adr = 14 - (Xp / 16);
 		Xp = 79 - Xp;
+		Yp = 63 - Yp;
 		break;
 	}
 	SetPixel(Xp % 16, Yp % 16, N_p_adr, ON);
@@ -259,6 +271,7 @@ void Clk_data(uint8_t n_p, uint8_t x_b, uint8_t y_b, uint8_t bit_mask,
 	digitalWrite(GPIOC, G2_Pin, CM2 & 0b10);
 	digitalWrite(GPIOC, B2_Pin, CM2 & 0b1);
 	digitalWrite(GPIOD, CLK_P, 1);
+	delay_clk(Dl_CLK);
 }
 
 void LoadAndShowBufOnPanel(void) {
@@ -470,12 +483,12 @@ int main(void) {
 
 	/* USER CODE BEGIN Init */
 
-	EventDate.tm_sec = 49; //секунды
-	EventDate.tm_min = 30; //минуты
-	EventDate.tm_hour = 13; //час
-	EventDate.tm_mday = 12; //день
-	EventDate.tm_mon = 2; //месяц - 1, т.е. тут указан март
-	EventDate.tm_year = 122; //год с 1900 года
+	EventDate.tm_sec = 00; //секунды
+	EventDate.tm_min = 00; //минуты
+	EventDate.tm_hour = 12; //час
+	EventDate.tm_mday = 25; //день
+	EventDate.tm_mon = 11; //месяц - 1, т.е. тут указан март
+	EventDate.tm_year = 121; //год с 1900 года
 	EventDate.tm_isdst = 0; //флаг перехода на летнее время
 
 	uint64_t EventTimer;
@@ -500,13 +513,13 @@ int main(void) {
 
 	HAL_UART_Receive_DMA(&huart1, (uint8_t*) &Rx1Buf, Rx1Buf_SIZE);
 
-	HAL_UART_Receive_IT(&huart3, (uint8_t*) &SET_data, SIZE_BF_SET - 1);
+//	HAL_UART_Receive_IT(&huart3, (uint8_t*) &SET_data, SIZE_BF_SET - 1);
 
 	//вкл. выход упр. на панели
 	HAL_GPIO_WritePin(GPIOD, VCC0_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOD, VCC1_Pin, GPIO_PIN_SET);
 
-	RestoreSettings();
+//	RestoreSettings();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -528,6 +541,8 @@ int main(void) {
 	//WriteChar(64, 0, 1);
 	uint16_t timer_i = 0;
 	uint8_t i_c = 0;
+	const uint8_t day_w = 10;
+	const uint8_t time_w = 40;
 	while (1) {
 
 		LoadAndShowBufOnPanel();
@@ -551,26 +566,26 @@ int main(void) {
 
 			if (EventTimeSec > NowTimeSec) {
 				EventTimer = EventTimeSec - NowTimeSec;
-				print_three_dig(23, 12, (uint16_t) (EventTimer / 86400));
-				print_two_dig(5, 36, (uint8_t) (EventTimer / 3600 % 24));
-				WriteChar(23, 36, 10);
-				print_two_dig(31, 36, (uint8_t) (EventTimer / 60 % 60));
-				WriteChar(49, 36, 10);
-				print_two_dig(57, 36, (uint8_t) (EventTimer % 60));
+				print_three_dig(23, day_w, (uint16_t) (EventTimer / 86400));
+				print_two_dig(5, time_w, (uint8_t) (EventTimer / 3600 % 24));
+				WriteChar(23, time_w, 10);
+				print_two_dig(31, time_w, (uint8_t) (EventTimer / 60 % 60));
+				WriteChar(49, time_w, 10);
+				print_two_dig(57, time_w, (uint8_t) (EventTimer % 60));
 			} else {
 				//Выводим на экран сообщение что счетчик оттикал
-				WriteChar(23, 12, 10);
-				WriteChar(36, 12, 10);
-				WriteChar(49, 12, 10);
+				WriteChar(23, day_w, 10);
+				WriteChar(36, day_w, 10);
+				WriteChar(49, day_w, 10);
 
-				WriteChar(05, 36, 10);
-				WriteChar(15, 36, 10);
-				WriteChar(23, 36, 10);
-				WriteChar(31, 36, 10);
-				WriteChar(41, 36, 10);
-				WriteChar(49, 36, 10);
-				WriteChar(57, 36, 10);
-				WriteChar(67, 36, 10);
+				WriteChar(05, time_w, 10);
+				WriteChar(15, time_w, 10);
+				WriteChar(23, time_w, 10);
+				WriteChar(31, time_w, 10);
+				WriteChar(41, time_w, 10);
+				WriteChar(49, time_w, 10);
+				WriteChar(57, time_w, 10);
+				WriteChar(67, time_w, 10);
 			}
 		}
 
@@ -594,7 +609,7 @@ void SystemClock_Config(void) {
 	HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 	/** Configure the main internal regulator output voltage
 	 */
-	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
 	while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {
 	}
@@ -604,7 +619,16 @@ void SystemClock_Config(void) {
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
 	RCC_OscInitStruct.HSIState = RCC_HSI_DIV1;
 	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+	RCC_OscInitStruct.PLL.PLLM = 4;
+	RCC_OscInitStruct.PLL.PLLN = 60;
+	RCC_OscInitStruct.PLL.PLLP = 2;
+	RCC_OscInitStruct.PLL.PLLQ = 2;
+	RCC_OscInitStruct.PLL.PLLR = 2;
+	RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
+	RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
+	RCC_OscInitStruct.PLL.PLLFRACN = 0;
 	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
 		Error_Handler();
 	}
@@ -613,15 +637,15 @@ void SystemClock_Config(void) {
 	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
 			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1
 			| RCC_CLOCKTYPE_D1PCLK1;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
-	RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV1;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
-	RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;
+	RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) {
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) {
 		Error_Handler();
 	}
 }
@@ -646,7 +670,7 @@ static void MX_TIM1_Init(void) {
 	htim1.Instance = TIM1;
 	htim1.Init.Prescaler = 39999;
 	htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim1.Init.Period = 1599;
+	htim1.Init.Period = 5999;
 	htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim1.Init.RepetitionCounter = 0;
 	htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -784,6 +808,7 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
 	/* GPIO Ports Clock Enable */
+	__HAL_RCC_GPIOH_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 	__HAL_RCC_GPIOC_CLK_ENABLE();
@@ -791,7 +816,7 @@ static void MX_GPIO_Init(void) {
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOD,
-	VCC1_Pin | VCC0_Pin | CLK1_Pin | OE_Pin | CLK_Pin | STB_Pin | A_Pin,
+			VCC1_Pin | VCC0_Pin | CLK1_Pin | OE_Pin | CLK_Pin | STB_Pin | A_Pin,
 			GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
