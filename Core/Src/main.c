@@ -557,21 +557,21 @@ int main(void) {
 				print_two_dig(31, 36, (uint8_t) (EventTimer / 60 % 60));
 				WriteChar(49, 36, 10);
 				print_two_dig(57, 36, (uint8_t) (EventTimer % 60));
-			}
-		} else {
-			//Выводим на экран сообщение что счетчик оттикал
-			WriteChar(23, 12, 10);
-			WriteChar(36, 12, 10);
-			WriteChar(49, 12, 10);
+			} else {
+				//Выводим на экран сообщение что счетчик оттикал
+				WriteChar(23, 12, 10);
+				WriteChar(36, 12, 10);
+				WriteChar(49, 12, 10);
 
-			WriteChar(05, 36, 10);
-			WriteChar(15, 36, 10);
-			WriteChar(23, 36, 10);
-			WriteChar(31, 36, 10);
-			WriteChar(41, 36, 10);
-			WriteChar(49, 36, 10);
-			WriteChar(57, 36, 10);
-			WriteChar(67, 36, 10);
+				WriteChar(05, 36, 10);
+				WriteChar(15, 36, 10);
+				WriteChar(23, 36, 10);
+				WriteChar(31, 36, 10);
+				WriteChar(41, 36, 10);
+				WriteChar(49, 36, 10);
+				WriteChar(57, 36, 10);
+				WriteChar(67, 36, 10);
+			}
 		}
 
 		/* USER CODE END WHILE */
