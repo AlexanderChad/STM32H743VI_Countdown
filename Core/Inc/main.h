@@ -86,6 +86,8 @@ void Error_Handler(void);
 #define R1_GPIO_Port GPIOA
 #define G1_Pin GPIO_PIN_10
 #define G1_GPIO_Port GPIOA
+#define ON_Pin GPIO_PIN_12
+#define ON_GPIO_Port GPIOC
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
