@@ -38,50 +38,54 @@ struct tm EventDate;
 struct tm NowTime;
 int utc_timezone = 7;
 
-// Название шрифта          Liberation Sans Narrow 15
-// Автор шрифта             ELPI-NOTEBOOK / root
-// Дата и время генерации   23.12.2021 21:49:27
-// Сгенерировано            matrixFont v1.1.0.52
-// Кодовая страница         ANSI (ASCII 7-битная)
-// https://gitlab.com/riva-lab/matrixFont
+#define FONT0_LENGTH            11
+#define FONT0_START_CHAR        48
+#define FONT0_CHAR_WIDTH        8
+#define FONT0_CHAR_HEIGHT       14
+#define FONT0_FONT_TYPE         (FONT_TYPE_MONOSPACED)
+#define FONT0_ARRAY_LENGTH      (FONT0_LENGTH * FONT0_CHAR_WIDTH)
 
-#ifndef FONT_H
-#define FONT_H
-
-#ifndef FONT_TYPE_MONOSPACED
-#define FONT_TYPE_MONOSPACED    0
-#endif
-
-#ifndef FONT_TYPE_PROPORTIONAL
-#define FONT_TYPE_PROPORTIONAL  1
-#endif
-
-#define FONT_LENGTH             11
-#define FONT_START_CHAR         48
-#define FONT_CHAR_WIDTH         8
-#define FONT_CHAR_HEIGHT        14
-#define FONT_FONT_TYPE          (FONT_TYPE_MONOSPACED)
-#define FONT_ARRAY_LENGTH       (FONT_LENGTH * FONT_CHAR_WIDTH)
-
-const unsigned short font_f_for16x16[FONT_ARRAY_LENGTH] =
+const unsigned long  font0[FONT0_ARRAY_LENGTH] =
 {
 
         // Digits / Цифры
-    0b0000011111111000, 0b0001111111111110, 0b0011100000000111, 0b0011000000000011, 0b0011100000000111, 0b0001111111111110, 0b0000011111111000, 0b0000000000000000, // Символ 48  <0>
-    0b0011000000001100, 0b0011000000001110, 0b0011000000000111, 0b0011111111111111, 0b0011111111111111, 0b0011111111111111, 0b0011000000000000, 0b0011000000000000, // Символ 49  <1>
-    0b0011100000001100, 0b0011111000001110, 0b0011111100000011, 0b0011001110000011, 0b0011000111000011, 0b0011000011111111, 0b0011000001111110, 0b0011000000000000, // Символ 50  <2>
-    0b0001110000001100, 0b0011110000001110, 0b0011000000000011, 0b0011000011000011, 0b0011000011000011, 0b0011111111111111, 0b0000111100111100, 0b0000000000000000, // Символ 51  <3>
-    0b0000011100000000, 0b0000011111000000, 0b0000011011110000, 0b0000011000111000, 0b0000011000001110, 0b0011111111111111, 0b0011111111111111, 0b0000011000000000, // Символ 52  <4>
-    0b0000110000000000, 0b0001110011111111, 0b0011100011111111, 0b0011000001100011, 0b0011000001100011, 0b0011100011100011, 0b0001111111000011, 0b0000111110000000, // Символ 53  <5>
-    0b0000011111111000, 0b0001111111111110, 0b0011100001000111, 0b0011000001100011, 0b0011000001100011, 0b0001111111100110, 0b0000111110000100, 0b0000000000000000, // Символ 54  <6>
-    0b0000000000000011, 0b0000000000000011, 0b0011110000000011, 0b0011111110000011, 0b0000001111100011, 0b0000000001111011, 0b0000000000011111, 0b0000000000001111, // Символ 55  <7>
-    0b0000111100111100, 0b0001111111111110, 0b0011100111100111, 0b0011000011000011, 0b0011100111100111, 0b0001111111111110, 0b0000111100111100, 0b0000000000000000, // Символ 56  <8>
-    0b0001100001111100, 0b0011100111111110, 0b0011001111000111, 0b0011000110000011, 0b0011100011000111, 0b0001111111111110, 0b0000011111111000, 0b0000000000000000, // Символ 57  <9>
+    0b00000000000000000000011111111000, 0b00000000000000000001111111111110, 0b00000000000000000011100000000111, 0b00000000000000000011000000000011, 0b00000000000000000011100000000111, 0b00000000000000000001111111111110, 0b00000000000000000000011111111000, 0b00000000000000000000000000000000, // Символ 48  <0>
+    0b00000000000000000011000000001100, 0b00000000000000000011000000001110, 0b00000000000000000011000000000111, 0b00000000000000000011111111111111, 0b00000000000000000011111111111111, 0b00000000000000000011111111111111, 0b00000000000000000011000000000000, 0b00000000000000000011000000000000, // Символ 49  <1>
+    0b00000000000000000011100000001100, 0b00000000000000000011111000001110, 0b00000000000000000011111100000011, 0b00000000000000000011001110000011, 0b00000000000000000011000111000011, 0b00000000000000000011000011111111, 0b00000000000000000011000001111110, 0b00000000000000000011000000000000, // Символ 50  <2>
+    0b00000000000000000001110000001100, 0b00000000000000000011110000001110, 0b00000000000000000011000000000011, 0b00000000000000000011000011000011, 0b00000000000000000011000011000011, 0b00000000000000000011111111111111, 0b00000000000000000000111100111100, 0b00000000000000000000000000000000, // Символ 51  <3>
+    0b00000000000000000000011100000000, 0b00000000000000000000011111000000, 0b00000000000000000000011011110000, 0b00000000000000000000011000111000, 0b00000000000000000000011000001110, 0b00000000000000000011111111111111, 0b00000000000000000011111111111111, 0b00000000000000000000011000000000, // Символ 52  <4>
+    0b00000000000000000000110000000000, 0b00000000000000000001110011111111, 0b00000000000000000011100011111111, 0b00000000000000000011000001100011, 0b00000000000000000011000001100011, 0b00000000000000000011100011100011, 0b00000000000000000001111111000011, 0b00000000000000000000111110000000, // Символ 53  <5>
+    0b00000000000000000000011111111000, 0b00000000000000000001111111111110, 0b00000000000000000011100001000111, 0b00000000000000000011000001100011, 0b00000000000000000011000001100011, 0b00000000000000000001111111100110, 0b00000000000000000000111110000100, 0b00000000000000000000000000000000, // Символ 54  <6>
+    0b00000000000000000000000000000011, 0b00000000000000000000000000000011, 0b00000000000000000011110000000011, 0b00000000000000000011111110000011, 0b00000000000000000000001111100011, 0b00000000000000000000000001111011, 0b00000000000000000000000000011111, 0b00000000000000000000000000001111, // Символ 55  <7>
+    0b00000000000000000000111100111100, 0b00000000000000000001111111111110, 0b00000000000000000011100111100111, 0b00000000000000000011000011000011, 0b00000000000000000011100111100111, 0b00000000000000000001111111111110, 0b00000000000000000000111100111100, 0b00000000000000000000000000000000, // Символ 56  <8>
+    0b00000000000000000001100001111100, 0b00000000000000000011100111111110, 0b00000000000000000011001111000111, 0b00000000000000000011000110000011, 0b00000000000000000011100011000111, 0b00000000000000000001111111111110, 0b00000000000000000000011111111000, 0b00000000000000000000000000000000, // Символ 57  <9>
 
-    0b0000000000000000, 0b0000000000000000, 0b0000000000000000, 0b0000111000011100, 0b0000111000011100, 0b0000000000000000, 0b0000000000000000, 0b0000000000000000  // Символ 58  <:>
+    0b00000000000000000000000000000000, 0b00000000000000000000000000000000, 0b00000000000000000000000000000000, 0b00000000000000000000111000011100, 0b00000000000000000000111000011100, 0b00000000000000000000000000000000, 0b00000000000000000000000000000000, 0b00000000000000000000000000000000  // Символ 58  <:>
 };
 
-#endif // FONT_H
+#define FONT1_LENGTH            11
+#define FONT1_START_CHAR        48
+#define FONT1_CHAR_WIDTH        15
+#define FONT1_CHAR_HEIGHT       25
+#define FONT1_ARRAY_LENGTH      (FONT1_LENGTH * FONT1_CHAR_WIDTH)
+
+const unsigned long  font1[FONT1_ARRAY_LENGTH] =
+{
+
+        // Digits / Цифры
+    0x0003FFC0, 0x001FFFF8, 0x007FFFFC, 0x00FFFFFE, 0x00F8003F, 0x01E0000F, 0x01E0000F, 0x01E0000F, 0x01F0000F, 0x01FC003F, 0x00FFFFFE, 0x007FFFFC, 0x001FFFF8, 0x0003FF80, 0x00000000, // Символ 48  <0>
+    0x01E000F0, 0x01E00078, 0x01E0003C, 0x01E0001E, 0x01E0001E, 0x01FFFFFF, 0x01FFFFFF, 0x01FFFFFF, 0x01FFFFFF, 0x01FFFFFF, 0x01E00000, 0x01E00000, 0x01E00000, 0x01E00000, 0x00000000, // Символ 49  <1>
+    0x00000060, 0x01F00078, 0x01FE007E, 0x01FF007E, 0x01FF803F, 0x01EFC00F, 0x01E3E00F, 0x01E1F80F, 0x01E0FC0F, 0x01E07E1F, 0x01E03FFE, 0x01E01FFE, 0x01E00FFC, 0x01E003F0, 0x01E00000, // Символ 50  <2>
+    0x001C0070, 0x007C0078, 0x00FC007C, 0x00FE007E, 0x01F0001F, 0x01E0000F, 0x01E03C0F, 0x01E03C0F, 0x01E03C0F, 0x01F07E1F, 0x00FFFFFE, 0x00FFE7FE, 0x007FE3FC, 0x001F81F0, 0x00000000, // Символ 51  <3>
+    0x000F8000, 0x000FE000, 0x000FF000, 0x000FFC00, 0x000F3F00, 0x000F0FC0, 0x000F03F0, 0x000F00FC, 0x000F003F, 0x01FFFFFF, 0x01FFFFFF, 0x01FFFFFF, 0x01FFFFFF, 0x000F0000, 0x000F0000, // Символ 52  <4>
+    0x003C1FE0, 0x007C1FFF, 0x00FC1FFF, 0x00FC1FFF, 0x01F01E0F, 0x01E00F0F, 0x01E00F0F, 0x01E00F0F, 0x01F01F0F, 0x00F83F0F, 0x00FFFE0F, 0x007FFE0F, 0x003FFC0F, 0x000FE000, 0x00000000, // Символ 53  <5>
+    0x0007FF80, 0x003FFFF0, 0x007FFFFC, 0x00FFFFFE, 0x00F8387E, 0x01F01C1F, 0x01E01E0F, 0x01E01E0F, 0x01E01E0F, 0x01F87E3F, 0x00FFFE3E, 0x00FFFC3C, 0x003FF838, 0x000FE000, 0x00000000, // Символ 54  <6>
+    0x0000000F, 0x0000000F, 0x0000000F, 0x01F8000F, 0x01FF800F, 0x01FFF00F, 0x01FFFE0F, 0x0007FF8F, 0x00007FEF, 0x00000FFF, 0x000001FF, 0x0000007F, 0x0000001F, 0x00000000, 0x00000000, // Символ 55  <7>
+    0x001F01F0, 0x007FC7FC, 0x00FFEFFE, 0x00FFEFFE, 0x01E07E0F, 0x01C03807, 0x01C03807, 0x01C03807, 0x01C03807, 0x01E07C0F, 0x00FFEFFE, 0x00FFEFFE, 0x007FC7FC, 0x001F81F0, 0x00000000, // Символ 56  <8>
+    0x00180FE0, 0x00787FF8, 0x00F8FFFC, 0x00F8FFFE, 0x01F1F83F, 0x01E1E00F, 0x01E1E00F, 0x01E1E00F, 0x01F0F01F, 0x00FC783F, 0x00FFFFFE, 0x007FFFFC, 0x001FFFF0, 0x0003FF80, 0x00000000, // Символ 57  <9>
+
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x003E01F0, 0x003E01F0, 0x003E01F0, 0x003E01F0, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000  // Символ 58  <:>
+};
 
 #define SETTINGS_ADDRESS 0x81E0020 //адрес для сохранения настроек
 #define trig_time_err 60 //калибровка каждые trig_time_err секунд
@@ -211,7 +215,7 @@ void SetPixel(uint8_t Xp, uint8_t Yp, uint8_t N_p, uint16_t ON) {
 }
 
 void SetPixelBigPanel(uint8_t Xp, uint8_t Yp, uint16_t ON) {
-	uint8_t N_p_adr;
+	uint8_t N_p_adr = 0;
 	switch (Yp / 16) {
 	case 0:
 		N_p_adr = 4 - (Xp / 16);
@@ -233,11 +237,31 @@ void SetPixelBigPanel(uint8_t Xp, uint8_t Yp, uint16_t ON) {
 	SetPixel(Xp % 16, Yp % 16, N_p_adr, ON);
 }
 
-void WriteChar(uint8_t x_s, uint8_t y_s, uint8_t char_id) {
-	for (uint8_t x_b = 0; x_b < FONT_CHAR_WIDTH; x_b++) {
-		for (uint8_t y_b = 0; y_b < FONT_CHAR_HEIGHT; y_b++) {
-			SetPixelBigPanel(x_s + x_b, y_s + y_b,
-					font_f_for16x16[char_id * 8 + x_b] & ((uint16_t) 1 << y_b));
+void WriteChar(uint8_t x_s, uint8_t y_s, uint8_t char_id, uint8_t font) {
+	if (font == 0) {
+		for (uint8_t x_b = 0; x_b < FONT0_CHAR_WIDTH; x_b++) {
+			for (uint8_t y_b = 0; y_b < FONT0_CHAR_HEIGHT; y_b++) {
+				SetPixelBigPanel(x_s + x_b, y_s + y_b,
+						font0[char_id * FONT0_CHAR_WIDTH + x_b] & (1 << y_b));
+			}
+		}
+	} else {
+		for (uint8_t x_b = 0; x_b < FONT1_CHAR_WIDTH; x_b++) {
+			for (uint8_t y_b = 0; y_b < FONT1_CHAR_HEIGHT; y_b++) {
+				if (font1[char_id * FONT1_CHAR_WIDTH + x_b] & (1 << y_b)) {
+					SetPixelBigPanel(x_s + x_b, y_s + y_b, 1);
+				} else {
+					SetPixelBigPanel(x_s + x_b, y_s + y_b, 0);
+				}
+			}
+		}
+	}
+}
+
+void clear() {
+	for (int i = 0; i < 20; i++) {
+		for (int j = 0; j < 32; j++) {
+			RAW_DISPLAY[i][j] = 0;
 		}
 	}
 }
@@ -448,23 +472,40 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 }
 
-void print_two_dig(uint8_t x_start, uint8_t y_start, uint8_t two_dig) {
-	WriteChar(x_start, y_start, two_dig / 10);
-	WriteChar(x_start + FONT_CHAR_WIDTH + 2, y_start, two_dig % 10);
+void print_two_dig(uint8_t x_start, uint8_t y_start, uint8_t two_dig, uint8_t font) {
+	if (font == 0) {
+		WriteChar(x_start, y_start, two_dig / 10, font);
+		WriteChar(x_start + FONT0_CHAR_WIDTH + 2, y_start, two_dig % 10, font);
+	} else {
+		WriteChar(x_start, y_start, two_dig / 10, font);
+		WriteChar(x_start + FONT1_CHAR_WIDTH + 2, y_start, two_dig % 10, font);
+	}
 }
 
-void print_three_dig(uint8_t x_start, uint8_t y_start, uint16_t three_dig) {
+void print_three_dig(uint8_t x_start, uint8_t y_start, uint16_t three_dig, uint8_t font) {
 	uint8_t dig1 = (uint16_t) (three_dig / 100);
 	uint8_t dig2 = (uint16_t) (three_dig % 100 / 10);
 	uint8_t dig3 = (uint16_t) (three_dig % 10);
-	if (three_dig < 10) {
-		WriteChar(x_start, y_start, 10);
-		WriteChar(x_start + FONT_CHAR_WIDTH + 5, y_start, dig3);
-		WriteChar(x_start + FONT_CHAR_WIDTH + 18, y_start, 10);
+	if (font == 0) {
+		if (three_dig < 10) {
+			WriteChar(x_start, y_start, 10, font);
+			WriteChar(x_start + FONT0_CHAR_WIDTH + 5, y_start, dig3, font);
+			WriteChar(x_start + FONT0_CHAR_WIDTH + 18, y_start, 10, font);
+		} else {
+			WriteChar(x_start, y_start, dig1, font);
+			WriteChar(x_start + FONT0_CHAR_WIDTH + 5, y_start, dig2, font);
+			WriteChar(x_start + FONT0_CHAR_WIDTH + 18, y_start, dig3, font);
+		}
 	} else {
-		WriteChar(x_start, y_start, dig1);
-		WriteChar(x_start + FONT_CHAR_WIDTH + 5, y_start, dig2);
-		WriteChar(x_start + FONT_CHAR_WIDTH + 18, y_start, dig3);
+		if (three_dig < 10) {
+			WriteChar(x_start, y_start, 10, font);
+			WriteChar(x_start + FONT1_CHAR_WIDTH + 5, y_start, dig3, font);
+			WriteChar(x_start + FONT1_CHAR_WIDTH * 2 + 9, y_start, 10, font);
+		} else {
+			WriteChar(x_start, y_start, dig1, font);
+			WriteChar(x_start + FONT1_CHAR_WIDTH + 5, y_start, dig2, font);
+			WriteChar(x_start + FONT1_CHAR_WIDTH * 2 + 9, y_start, dig3, font);
+		}
 	}
 }
 /* USER CODE END 0 */
@@ -493,6 +534,15 @@ int main(void)
 	EventDate.tm_mon = 11; //месяц c нуля
 	EventDate.tm_year = 122; //год с 1900 года
 	EventDate.tm_isdst = 0; //флаг перехода на летнее время
+
+//  	EventDate.tm_sec = 00; //секунды
+//  	EventDate.tm_min = 00; //минуты
+//  	EventDate.tm_hour = 12; //час
+//  	EventDate.tm_mday = 26; //день
+//  	EventDate.tm_mon = 11; //месяц c нуля
+//  	EventDate.tm_year = 121; //год с 1900 года
+//  	EventDate.tm_isdst = 0; //флаг перехода на летнее время
+
 
 	uint64_t EventTimer;
 	EventTimeSec = mktime(&EventDate);
@@ -544,9 +594,9 @@ int main(void)
 	 SetPixelBigPanel(73, 9, 1);*/
 
 	//WriteChar(64, 0, 1);
-	uint16_t timer_i = 0;
+	uint32_t timer_i = 0;
 	uint8_t i_c = 0;
-	const uint8_t day_w = 10;
+	const uint8_t day_w = 3;
 	const uint8_t time_w = 40;
 	while (1) {
 
@@ -569,37 +619,34 @@ int main(void)
 				i_c++;
 			}
 		}
-		if (timer_i % 1000 == 0) {
+		if (timer_i % 10000 == 0) {
 			if (HAL_GPIO_ReadPin(ON_GPIO_Port, ON_Pin) == GPIO_PIN_SET) {
+				//clear();
 				if (EventTimeSec > NowTimeSec && NowTimeSec > 1261440000) {
 					EventTimer = EventTimeSec - NowTimeSec;
-					print_three_dig(23, day_w, (uint16_t) (EventTimer / 86400));
-					print_two_dig(5, time_w, (uint8_t) (EventTimer / 3600 % 24));
-					WriteChar(23, time_w, 10);
-					print_two_dig(31, time_w, (uint8_t) (EventTimer / 60 % 60));
-					WriteChar(49, time_w, 10);
-					print_two_dig(57, time_w, (uint8_t) (EventTimer % 60));
+					print_three_dig(14, day_w, (uint16_t) (EventTimer / 86400), 1);
+					print_two_dig(5, time_w, (uint8_t) (EventTimer / 3600 % 24), 0);
+					WriteChar(23, time_w, 10, 0);
+					print_two_dig(31, time_w, (uint8_t) (EventTimer / 60 % 60), 0);
+					WriteChar(49, time_w, 10, 0);
+					print_two_dig(57, time_w, (uint8_t) (EventTimer % 60), 0);
 				} else {
 					//Выводим на экран сообщение что счетчик оттикал
-					WriteChar(23, day_w, 10);
-					WriteChar(36, day_w, 10);
-					WriteChar(49, day_w, 10);
+					WriteChar(14, day_w, 10, 1);
+					WriteChar(14 + FONT1_CHAR_WIDTH + 5, day_w, 10, 1);
+					WriteChar(14 + FONT1_CHAR_WIDTH *2 + 9, day_w, 10, 1);
 
-					WriteChar(05, time_w, 10);
-					WriteChar(15, time_w, 10);
-					WriteChar(23, time_w, 10);
-					WriteChar(31, time_w, 10);
-					WriteChar(41, time_w, 10);
-					WriteChar(49, time_w, 10);
-					WriteChar(57, time_w, 10);
-					WriteChar(67, time_w, 10);
+					WriteChar(05, time_w, 10, 0);
+					WriteChar(15, time_w, 10, 0);
+					WriteChar(23, time_w, 10, 0);
+					WriteChar(31, time_w, 10, 0);
+					WriteChar(41, time_w, 10, 0);
+					WriteChar(49, time_w, 10, 0);
+					WriteChar(57, time_w, 10, 0);
+					WriteChar(67, time_w, 10, 0);
 				}
 			} else {
-				for (int i = 0; i < 20; i++) {
-					for (int j = 0; j < 32; j++) {
-						RAW_DISPLAY[i][j] = 0;
-					}
-				}
+				clear();
 			}
 		}
 
