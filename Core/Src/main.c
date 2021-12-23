@@ -131,8 +131,10 @@ static void MX_USART1_UART_Init(void);
 uint16_t TOnLP = 10;
 
 uint8_t RAW_DISPLAY[20][32];
-uint8_t ColorMatrix = 1;
-int SetColorMatrix = 0;
+uint8_t ColorMatrix = 0;
+uint8_t ColorMatrix0 = 4;
+uint8_t ColorMatrix1 = 7;
+int SetColorMatrix = 7;
 
 void delay_us(uint16_t us) //create delay function
 {
@@ -163,12 +165,8 @@ void RestoreSettings() {
 	EventDate.tm_year = *(uint32_t*) (SETTINGS_ADDRESS + 24);
 	SetColorMatrix = *(uint32_t*) (SETTINGS_ADDRESS + 28);
 	if (SetColorMatrix) {
-		ColorMatrix = SetColorMatrix;
+		ColorMatrix1 = SetColorMatrix;
 	}
-}
-
-void SetColor(uint8_t Color) {
-	ColorMatrix = Color;
 }
 
 void SetPixel(uint8_t Xp, uint8_t Yp, uint8_t N_p, uint16_t ON) {
@@ -240,9 +238,11 @@ void Clk_data(uint8_t n_p, uint8_t x_b, uint8_t y_b, uint8_t bit_mask,
 	uint16_t CLK_P;
 	if (n_line) {
 		CLK_P = CLK1_Pin;
-		n_p += 5;
+		n_p += 10;
+		ColorMatrix = ColorMatrix1;
 	} else {
 		CLK_P = CLK_Pin;
+		ColorMatrix = ColorMatrix0;
 	}
 	digitalWrite(GPIOD, CLK_P, 0);
 
@@ -341,7 +341,7 @@ void GetSetting() {
 		case 4:
 			sscanf(istr, "%1d", &SetColorMatrix);
 			if (SetColorMatrix) {
-				ColorMatrix = SetColorMatrix;
+				ColorMatrix1 = SetColorMatrix;
 			}
 			break;
 		}
@@ -525,9 +525,6 @@ int main(void) {
 	 SetPixelBigPanel(72, 8, 1);
 	 SetPixelBigPanel(73, 9, 1);*/
 
-	//SetColor(4); //R
-	//SetColor(2); //G
-	//SetColor(1); //B
 	//WriteChar(64, 0, 1);
 	uint16_t timer_i = 0;
 	uint8_t i_c = 0;
@@ -543,7 +540,7 @@ int main(void) {
 		if (SetColorMatrix == 0) {
 			if (timer_i % 300 == 0) {
 				if (i_c < 8) {
-					SetColor(i_c);
+					ColorMatrix1 = i_c;
 				} else {
 					i_c = 0;
 				}
