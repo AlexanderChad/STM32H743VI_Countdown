@@ -19,3 +19,8 @@
 
 Схема подключения матриц (цифры - порядок записи в памяти, ПР - плата расширения, платы с STM32 и GPS не показаны в целях упрощения):  
 ![Порядок записи и схема подключения матриц.](https://github.com/AlexanderChad/STM32H743VI_Countdown/blob/main/display_5x4_addr.png)  
+
+Тест:
+![Финальный вид.](https://github.com/AlexanderChad/STM32H743VI_Countdown/blob/2_color_80x64/final_view.png)  
+
+Релиз: [Часы обратного отсчета до старта МЧМ-2023 установили в Новосибирске](https://vk.com/wall-188530631_398)
