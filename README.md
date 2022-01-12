@@ -22,3 +22,5 @@
 
 Тест:
 ![Финальный вид.](https://github.com/AlexanderChad/STM32H743VI_Countdown/blob/2_color_80x64/final_view.png)  
+
+Релиз: [Часы обратного отсчета до старта МЧМ-2023 установили в Новосибирске](https://vk.com/wall-188530631_398)
